@@ -1,40 +1,22 @@
-/**
- * Sends an error response in json format
- * @param {Object} req
- * @param {Object} res
- * @param {string} errorMessage
- * @param {number} code
- * @param {Object} error
- */
+import { NextResponse } from "next/server";
 
-export function errorResponse(
-  req,
-  res,
-  errorMessage = "Something went wrong",
-  code = 500,
-  error = {}
-) {
-  res.status(code).json({
-    code,
-    errorMessage,
-    error,
-    data: null,
-    success: false,
-  });
+export function errorResponse(status = 500, error = {}) {
+  let error_response = {
+    status,
+    message: error.message,
+  };
+  return new NextResponse(
+    JSON.stringify({ success: false, ...error_response }),
+    {
+      status,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
 }
 
-/**
- * Sends a success response in json format
- * @param {Object} req
- * @param {Object} res
- * @param {Object} data
- * @param {number} code
- */
-
-export function successResponse(req, res, data, code = 200) {
-  res.send({
-    code,
-    data,
-    success: true,
+export function successResponse(status = 200, data) {
+  return new NextResponse(JSON.stringify({ success: true, ...data }), {
+    status,
+    headers: { "Content-Type": "application/json" },
   });
 }
