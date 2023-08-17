@@ -1,38 +1,192 @@
+"use client";
+
 import Color from "color";
 import classNames from "classnames";
+import { SquareButton } from "../Buttons";
+import { Pencil, Trash } from "@phosphor-icons/react";
+import { Modal, Confirmation } from "../Modals";
+import { EmployeeForm } from "../Forms";
+import { PopupLoader } from "../Loaders";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function Base({
-  employeeId = "0294023jk4h5",
+  employeeData = {},
   color = "#ba2222",
-  name = "test",
+  mutate = () => {},
 }) {
-  const buildingColor = Color(color);
+  const baseColor = Color(color);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const router = useRouter();
+
+  const floors = [...Array(employeeData?.schoolCount || 0)].map((_, index) => (
+    <div key={index} className="w-[320px] flex-shrink-0">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        //   width="555.3"
+        //   height="281.091"
+        version="1.1"
+        viewBox="0 0 146.923 74.372"
+      >
+        <g transform="translate(-188.235 -92.97)">
+          <g
+            strokeDasharray="none"
+            strokeLinecap="round"
+            strokeMiterlimit="4"
+            transform="translate(126.23 89.347)"
+          >
+            <path
+              fill={baseColor.hex()}
+              d="M67.772 7.612H203.161V77.99499999999999H67.772z"
+            ></path>
+            <rect
+              width="146.923"
+              height="3.969"
+              x="62.005"
+              y="3.623"
+              fill={baseColor.darken(0.3).string()}
+              stroke="#000"
+              strokeWidth="0"
+              rx="2.646"
+              ry="2.646"
+            ></rect>
+            <path
+              fill="#00d6ff"
+              fillOpacity="1"
+              stroke={baseColor.darken(0.5).string()}
+              strokeOpacity="1"
+              strokeWidth="1.323"
+              d="M75.881 37.663H195.053V70.71199999999999H75.881z"
+            ></path>
+            <path
+              fill={baseColor.darken(0.5).string()}
+              fillOpacity="1"
+              stroke="#6eb93a"
+              strokeOpacity="0.639"
+              strokeWidth="0"
+              d="M134.805 38.172H136.12800000000001V70.553H134.805z"
+            ></path>
+            <path
+              fill={baseColor.darken(0.5).string()}
+              fillOpacity="1"
+              stroke="#6eb93a"
+              strokeOpacity="0.639"
+              strokeWidth="0"
+              d="M164.849 38.172H166.172V70.553H164.849z"
+            ></path>
+            <path
+              fill={baseColor.darken(0.5).string()}
+              fillOpacity="1"
+              stroke="#6eb93a"
+              strokeOpacity="0.639"
+              strokeWidth="0"
+              d="M104.094 37.838H105.41699999999999V70.219H104.094z"
+            ></path>
+          </g>
+        </g>
+      </svg>
+    </div>
+  ));
+
+  async function deleteItem() {
+    try {
+      setIsDeleting(true);
+      setIsConfirmationOpen(false);
+      const res = await fetch(`/api/employees/${employeeData?._id}`, {
+        method: "DELETE",
+      });
+      const result = await res.json();
+
+      if (result?.success) {
+        toast.success("Employee deleted");
+        mutate();
+      } else if (!result?.success) {
+        toast.error("Delete failed");
+      }
+      setIsDeleting(false);
+    } catch (error) {
+      setIsDeleting(false);
+      toast.error("Delete failed");
+    }
+  }
+
   return (
-    <div className="w-[320px] relative building flex-shrink-0">
+    <div
+      onClick={() => router.push(`/employees/${employeeData?._id}`)}
+      className="w-[380px] relative building flex-shrink-0 cursor-pointer group"
+    >
+      <div className="flex flex-col absolute bottom-full left-[50%] translate-x-[-50%]">
+        {floors}
+      </div>
+      <div onClick={(e) => e.stopPropagation()}>
+        <PopupLoader isOpen={isDeleting} message="Deleting employee" />
+        <Confirmation
+          isOpen={isConfirmationOpen}
+          label="Delete Employee?"
+          message="All data associated with this employee will be removed"
+          onCancel={() => {
+            setIsConfirmationOpen(false);
+          }}
+          onConfirm={deleteItem}
+        />
+        <Modal
+          label="Edit Employee"
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        >
+          <EmployeeForm
+            initialData={employeeData}
+            onCancel={() => setIsModalOpen(false)}
+            onAfterSubmit={() => {
+              setIsModalOpen(false);
+              mutate();
+            }}
+          />
+        </Modal>
+      </div>
       <div
         className="absolute top-[23%] left-[50%] translate-x-[-50%] flex-col
       translate-y-[-50%] w-[75%] flex items-center justify-center gap-1"
       >
         <div
           className={classNames(
-            "w-full h-[25px] flex items-center justify-center bg-white rounded-r-full rounded-l-full drop-shadow-md"
+            "w-full h-[25px] flex items-center justify-center bg-gray-50 rounded-r-full rounded-l-full"
           )}
         >
-          <p className="uppercase font-bold whitespace-nowrap leading-none">
-            {name}
+          <p className="uppercase font-display font-bold whitespace-nowrap leading-none">
+            {employeeData?.firstName} {employeeData?.middleName}{" "}
+            {employeeData?.lastName}
           </p>
         </div>
         <p
           className={classNames(
-            "whitespace-nowrap text-[0.5rem] font-semibold",
+            "whitespace-nowrap text-[0.65rem] font-semibold",
             {
-              "text-white": buildingColor.isDark(),
-              "text-black": buildingColor.isLight(),
+              "text-white": baseColor.isDark(),
+              "text-black": baseColor.isLight(),
             }
           )}
         >
-          {employeeId}
+          {employeeData?._id}
         </p>
+      </div>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex-col gap-2 absolute right-[-30px] top-[30px] hidden group-hover:flex"
+      >
+        <SquareButton
+          withBorder
+          icon={<Pencil size={24} className="text-green-500" weight="fill" />}
+          onClick={() => setIsModalOpen(true)}
+        />
+        <SquareButton
+          withBorder
+          icon={<Trash size={24} className="text-red-500" weight="fill" />}
+          onClick={() => setIsConfirmationOpen(true)}
+        />
       </div>
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -45,7 +199,7 @@ export default function Base({
           <g transform="translate(.575 -24.711)">
             {/* main */}
             <path
-              fill={buildingColor.hex()}
+              fill={baseColor.hex()}
               stroke="#000"
               strokeDasharray="none"
               strokeLinecap="round"
@@ -57,7 +211,7 @@ export default function Base({
             <path
               fill="#00d6ff"
               fillOpacity="1"
-              stroke={buildingColor.darken(0.4).string()}
+              stroke={baseColor.darken(0.4).string()}
               strokeDasharray="none"
               strokeLinecap="round"
               strokeMiterlimit="4"
@@ -68,7 +222,7 @@ export default function Base({
             <path
               fill="#00d6ff"
               fillOpacity="1"
-              stroke={buildingColor.darken(0.4).string()}
+              stroke={baseColor.darken(0.4).string()}
               strokeDasharray="none"
               strokeLinecap="round"
               strokeMiterlimit="4"
@@ -80,7 +234,7 @@ export default function Base({
             <path
               fill="#00d6ff"
               fillOpacity="1"
-              stroke={buildingColor.darken(0.5).string()}
+              stroke={baseColor.darken(0.5).string()}
               strokeDasharray="none"
               strokeLinecap="round"
               strokeMiterlimit="4"
@@ -94,7 +248,7 @@ export default function Base({
               height="7.937"
               x="50.868"
               y="77.995"
-              fill="#757575"
+              fill={baseColor.darken(0.3).string()}
               stroke="#000"
               strokeDasharray="none"
               strokeLinecap="round"
@@ -120,7 +274,7 @@ export default function Base({
             ></rect>
             {/* window middle */}
             <path
-              fill={buildingColor.darken(0.5).string()}
+              fill={baseColor.darken(0.5).string()}
               fillOpacity="1"
               stroke="#272727"
               strokeDasharray="none"
@@ -131,7 +285,7 @@ export default function Base({
               d="M176.5 143.271H196.623V144.594H176.5z"
             ></path>
             <path
-              fill={buildingColor.darken(0.5).string()}
+              fill={baseColor.darken(0.5).string()}
               fillOpacity="1"
               stroke="#272727"
               strokeDasharray="none"

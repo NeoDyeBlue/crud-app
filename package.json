@@ -9,9 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.0.10",
     "autoprefixer": "10.4.15",
     "classnames": "^2.3.2",
     "color": "^4.2.3",
+    "date-fns": "^2.30.0",
     "eslint": "8.47.0",
     "eslint-config-next": "13.4.16",
     "formik": "^2.4.3",
@@ -22,7 +24,18 @@
     "postcss": "8.4.28",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "react-modal": "^3.16.1",
+    "react-remove-scroll": "^2.5.6",
+    "react-spinners": "^0.13.8",
+    "react-textarea-autosize": "^8.5.2",
+    "react-zoom-pan-pinch": "^3.1.0",
+    "swr": "^2.2.1",
     "tailwindcss": "3.3.3",
     "yup": "^1.2.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.2",
+    "prettier-plugin-tailwindcss": "^0.5.3"
   }
 }
